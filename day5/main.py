@@ -34,6 +34,19 @@ def solve1(stacks, moves):
 
     return [x[len(x)-1] for x in stacks]
 
+def solve2(stacks, moves):
+    for move in moves:
+        x = []
+        for num in range(move['num']):
+            x.append(stacks[move['start']].pop())
+        x.reverse()
+        for y in x:
+            stacks[move['end']].append(y)
+
+    return [x[len(x)-1] for x in stacks]
+
 if __name__ == "__main__":
     stacks, moves = parseData(getData())
     print(''.join(["The solution to Part One is ", str(solve1(stacks, moves))]))
+    stacks, moves = parseData(getData())
+    print(''.join(["The solution to Part Two is ", str(solve2(stacks, moves))]))
