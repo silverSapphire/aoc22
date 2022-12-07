@@ -27,10 +27,15 @@ class Node:
                     visited.append(child)
                     queue.append(child)
 
-    def find_size_thresh(self, thresh, list):
+    def find_all_less_equal(self, thresh, list):
         if self.size <= thresh: list.append(self)
         for node in self.children:
-            node.find_size_thresh(thresh, list)
+            node.find_all_less_equal(thresh, list)
+
+    def find_all_greater_equal(self, thresh, list):
+        if self.size >= thresh: list.append(self)
+        for node in self.children:
+            node.find_all_greater_equal(thresh, list)
 
 def getData():
     return [x for x in open('input.txt').readlines()]
@@ -57,9 +62,17 @@ def parseData(lines):
 
 def solve1(root):
     littleNodes = []
-    root.find_size_thresh(100000, littleNodes)
+    root.find_all_less_equal(100000, littleNodes)
     return sum([x.size for x in littleNodes])
+
+def solve2(root):
+    remaining = 70000000 - root.size
+    required = 30000000 - remaining
+    rightNodes = []
+    root.find_all_greater_equal(required, rightNodes)
+    return min([x.size for x in rightNodes])
 
 if __name__ == "__main__":
     root = parseData(getData())
     print(''.join(["The solution to Part One is ", str(solve1(root))]))
+    print(''.join(["The solution to Part Two is ", str(solve2(root))]))
