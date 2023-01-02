@@ -1,91 +1,58 @@
 #!/usr/bin/env python3
-import numpy as np
+from operator import add, sub
+import math
 
 def getData():
     return [x.strip() for x in open('input.txt').readlines()]
 
 def parseData(lines):
-
-    heights = []
+    motions = []
     for line in lines:
-        for x in line:
-            heights.append(int(x))
-            
-    return np.array(heights).reshape((len(lines[0]), len(lines)))
+        motions.append(tuple(line.split()))
 
-def solve1(data):
-    (width, height) = data.shape
-    nvisible = 2 * width + height * 2 - 4
+    return motions
 
-    for i in range(1, width-1):
-        for j in range(1, height-1):
-            tree = data[i, j]
-            left = [tree > x for x in data[i, :j]]
-            right = [tree > x for x in data[i, j+1:]]
-            up = [tree > x for x in data[:i, j]]
-            down = [tree > x for x in data[i+1:, j]]
+def getDelta(dir):
+    if(dir == 'U'): return (0, 1)
+    elif(dir == 'D'): return (0, -1)
+    elif(dir == 'L'): return (-1, 0)
+    elif(dir == 'R'): return (1, 0)
 
-            isVisible = sum(left) == len(left) or sum(right) == len(right) or sum(up) == len(up) or sum(down) == len(down)
-            if isVisible: nvisible = nvisible + 1
+def normalize(x):
+    if x > 0: return x - 1
+    elif x < 0: return x + 1
+    else: return x
 
-    return nvisible
+def copySign(x):
+    if x < 0: return -1
+    if x > 0: return 1
 
-def solve2(data):
-    (width, height) = data.shape
+def step(dir, head, tail, pos):
+    head = list(map(add, head, getDelta(dir)))
 
-    scores = []
-    for i in range(1, width-1):
-        for j in range(1, height-1):
-            tree = data[i][j]
+    gap = list(map(sub, head, tail))
+    if math.sqrt(sum(x*x for x in gap)) > math.sqrt(2):
+        if all(gap):
+            normalized = list(map(copySign, gap))
+            tail = list(map(add, tail, normalized))
+        else:
+            normalized = list(map(normalize, gap))
+            tail = list(map(add, tail, normalized))
+        pos.add(tuple(tail))
 
-            # Look left
-            nleft = 0
-            k = j-1
-            while k >= 0:
-                if data[i, k] < tree: 
-                    nleft = nleft + 1
-                if data[i, k] >= tree:
-                    nleft = nleft + 1
-                    break
-                k = k - 1
-            # Look right
-            nright = 0
-            k = j+1
-            while k < width :
-                if data[i, k] < tree: 
-                    nright = nright + 1
-                if data[i, k] >= tree:
-                    nright = nright + 1
-                    break
-                k = k + 1
-            # Look up
-            nup = 0
-            k = i-1
-            while k >= 0:
-                if data[k, j] < tree: 
-                    nup = nup + 1
-                if data[k, j] >= tree:
-                    nup = nup + 1
-                    break
-                k = k - 1
-            if k < 0: k = k + 1
-            # Look down
-            ndown = 0
-            k = i+1
-            while k < height:
-                if data[k, j] < tree: 
-                    ndown = ndown + 1
-                if data[k, j] >= tree:
-                    ndown = ndown + 1
-                    break
-                k = k + 1
-            if k == height: k = k + 1
-            
-            scores.append(nleft * nright * nup * ndown)
+    return head, tail, pos
 
-    return max(scores)
+def solve1(motions):
+    head = [0, 0]
+    tail = [0, 0]
+    pos = {(0, 0)}
+
+    for dir, num in motions:
+        for _ in range(int(num)):
+            head, tail, pos = step(dir, head, tail, pos)
+
+    return len(pos)
 
 if __name__ == "__main__":
     data = parseData(getData())
     print(''.join(["The solution to Part One is ", str(solve1(data))]))
-    print(''.join(["The solution to Part One is ", str(solve2(data))]))
