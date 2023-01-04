@@ -2,6 +2,8 @@
 from operator import add, sub
 import math
 
+NUM_KNOTS = 10
+
 def getData():
     return [x.strip() for x in open('input.txt').readlines()]
 
@@ -17,6 +19,7 @@ def getDelta(dir):
     elif(dir == 'D'): return (0, -1)
     elif(dir == 'L'): return (-1, 0)
     elif(dir == 'R'): return (1, 0)
+    elif(dir == None): return (0, 0)
 
 def normalize(x):
     if x > 0: return x - 1
@@ -34,10 +37,9 @@ def step(dir, head, tail, pos):
     if math.sqrt(sum(x*x for x in gap)) > math.sqrt(2):
         if all(gap):
             normalized = list(map(copySign, gap))
-            tail = list(map(add, tail, normalized))
         else:
             normalized = list(map(normalize, gap))
-            tail = list(map(add, tail, normalized))
+        tail = list(map(add, tail, normalized))
         pos.add(tuple(tail))
 
     return head, tail, pos
@@ -53,6 +55,19 @@ def solve1(motions):
 
     return len(pos)
 
+def solve2(motions):
+    knots = [[0, 0] for x in range(NUM_KNOTS)]
+    pos = [{(0, 0)} for x in range(NUM_KNOTS)]
+
+    for dir, num in motions:
+        for _ in range(int(num)):
+            for i in range(NUM_KNOTS - 1):
+                knots[i], knots[i+1], pos[i+1] = \
+                    step(dir if i == 0 else None, knots[i], knots[i+1], pos[i+1])
+
+    return len(pos[9])
+
 if __name__ == "__main__":
     data = parseData(getData())
     print(''.join(["The solution to Part One is ", str(solve1(data))]))
+    print(''.join(["The solution to Part Two is ", str(solve2(data))]))
